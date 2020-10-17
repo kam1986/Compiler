@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ImpCom", "ImpCom\ImpCom.fsproj", "{187778DB-BAF9-44C3-9292-805628D1CBD3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{187778DB-BAF9-44C3-9292-805628D1CBD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{187778DB-BAF9-44C3-9292-805628D1CBD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{187778DB-BAF9-44C3-9292-805628D1CBD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{187778DB-BAF9-44C3-9292-805628D1CBD3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {528979C3-E69D-4F0E-995C-21E69F7FD1DF}
+	EndGlobalSection
+EndGlobal

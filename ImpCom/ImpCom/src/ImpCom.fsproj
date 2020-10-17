@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Decoding.fs" />
+    <Compile Include="Result.fs" />
+    <Compile Include="Iter.fs" />
+    <Compile Include="Map.fs" />
+    <Compile Include="Lexer\Regex.fs" />
+    <Compile Include="Lexer\DFA.fs" />
+    <Compile Include="Lexer\Lexer.fs" />
+    <Compile Include="SymbolTable.fs" />
+    <Compile Include="AbstractSyntacsTree.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+</Project>

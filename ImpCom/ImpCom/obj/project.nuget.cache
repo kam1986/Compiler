@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "XFbQGSimTpZsVgL1/xTVOf0wM7pmgyBfe0QKxrR3xqIuL6weBZEPRfPZjxK0CRkoVfzYsgJPkTFZIcBRt6MIMg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\kasper\\Desktop\\compiler\\ImpCom\\ImpCom\\ImpCom.fsproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kasper\\.nuget\\packages\\fsharp.core\\4.7.1\\fsharp.core.4.7.1.nupkg.sha512"
+  ],
+  "logs": []
+}
