@@ -32,48 +32,32 @@ Lexer=bin/Lexer.dll
 Parser=bin/Parser.dll
 AST=bin/AST.dll
 
+Compiler=bin/Compiler.exe
+
+all:  $(Compiler)
+
+$(Iter): src/Iter.fs $(Decoding) $(Result)
+	$(fsc) -a src/Iter.fs  -o $(Iter) -r $(Decoding) -r $(Result) 
 
 
-all: $(Result) $(Decoding) $(Iter)
+$(Result): src/Result.fs
+	$(fsc) -a src/Result.fs -o $(Result)
 
-# Interface creation rules
-$(ILinker): Interfaces/Linker.fsx
-	$(fsc) -a Interfaces/Linker.fsx -o $(ILinker)
-
-$(ILoader): Interfaces/Loader.fsx
-	$(fsc) -a Interfaces/Loader.fsx -o $(ILoader)
-
-$(ISymbolTable): Interfaces/SymbolTable.fsx
-	$(fsc) -a Interfaces/SymbolTable.fsx -o $(ISymbolTable)
+$(Decoding): src/Decoding.fs
+	$(fsc) -a src/Decoding.fs -o $(Decoding)
 
 
-# Library creation rules
-$(Result): src/Result.fsx
-	$(fsc) -a src/Result.fsx -o $(Result)
+$(Regex): src/Regex.fs $(Map) $(Iter) $(Result)
+	$(fsc): -a src/Regex.fs -o $(Regex) -r $(Map) -r $(Iter) -r $(Result)
 
-$(Decoding): src/Decoding.fsx
-  $(fsc) -a src/Decoding.fsx -o $(Decoding)
+$(Map): src/Map.fs $(Result) $(Iter)
+	$(fsc) -a src/Map.fs -o $(Map) -r $(Result) -r $(Iter)
 
-$(Iter): src/Iter.fsx $(Result) $(Decoding)
-	$(fsc) -a src/Iter.fsx -r $(Result) -r $(Decoding) -o $(Iter)
+$(DFA): src/DFA.fs $(Regex) $(Result) $(Iter) $(Map)
+	$(fsc) -a src/DFA.fs -o $(DFA) -r $(Regex) -r $(Result) -r $(Iter) -r $(Map)
 
-$(AST): src/AST.fsx 
-  $(fsc) -a src/AST.fsx -o $(AST) 
+$(Compiler): src/Compiler.fsx $(Result) $(Iter) $(Map) $(Regex) $(DFA)
+	$(fsc) src/Compiler.fsx -o $(Compiler) -r $(Result) -r $(Iter) -r $(Map) -r $(Regex) -r $(DFA)
 
-$(Map): src/Map.fsx $(Iter) $(Result)
-  $(fsc) -a src/Map.fsx -o $(Map) -r $(Iter) -r $(Result)
-
-
-$(Regex): src/Regex.fsx
-  $(fsc) -a src/Regex.fsx -o $(Regex)
-
-$(Lexer): src/Lexer.fsx
-  $(fsc) -a src/Lexer.fsx -o $(Lexer)
-
-$(DFA): src/DFA.fsx
-  $(fsc) -a /src/DFA.fsx -0 $(DFA)
-
-
-#Main program rule
-$(Compiler): src/Compiler.fsx
-  $(fsc) --nologo --standalone  src/Iter.fsx -o $(Compiler) 
+clean:
+	rm -rf bin/*

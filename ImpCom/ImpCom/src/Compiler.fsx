@@ -9,8 +9,7 @@ open DFA
 
 [<EntryPoint>]
 let main argv =
-    let test = List("[a-b]+[1-9].")
-    (test :> byte Iter).Show
+    let test = List("(a|b)*abb")
     (*
         0: (b|aa) paranteses
         1: b|aa orr
@@ -18,33 +17,32 @@ let main argv =
         3: | b a a 
     *)
     
-    let table, _ =
+    let table, size, min' =
         Run Tokenizer test
         |> Return 
         |> fun (tokens, _) -> 
-            printfn "tokens\n\t%A" tokens
-            printfn ""
             lst(tokens)
         |> Run Parser
         |> Return
         |> fun ((regex, count), _) ->  
-            printfn "Regex\n\t%A" (Cat regex (Terminal count))
-            printfn "FollowPos\n\t%A" <| Followpos (Cat regex (Terminal count)) Map.empty
-            Cat regex (Terminal count) 
+           Cat regex (Terminal count) 
         |> StateFinder
         |> fun (language, states, transitions) ->
-            printfn "language\n%A\n" language
+
             let t = 
                 Map.toList transitions
                 |> List.map (fun ((src,letter),dst) -> ((src, char letter), dst))
                 |> Map.ofList
-
-            printfn "transitions\n%A\n" t
-            printfn "states\n%A\n" states
-            makeTable language states transitions
-
-    printfn "%A" table
-
+            makeTable language states transitions 
+   
+    DfaMap table size min' [|None;None;None;Some id|]
+    |> Run
+    |> fun func -> func (List(argv.[0]))
+    |> fun ret ->
+        match ret with
+        | Failure msg -> printfn "ERROR: %s" msg
+        | Success(ret, _) -> printfn "SUCCESS: %s" ret
+    
     0 // return an integer exit code
 
 

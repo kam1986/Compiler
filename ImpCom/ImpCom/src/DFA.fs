@@ -1,0 +1,194 @@
+﻿module DFA
+
+#nowarn "25"
+// just a junk function showing that we can make 'maybe equal' 
+// let ( ?= ) a b = if a = b then Ok b else sprintf "%A is not equal %A" a b |> Error 
+open Result
+open Regex
+open Iter
+open Mapping
+
+(* 
+    For now we use Maximum value of a byte as error mark.
+    This is do to the ASCII encoding uses only the 0 - 127 interval
+    And UFT8 can not have a full set byte in a sequence
+
+    i.e.
+    ASCII byte 0xxxxxxx.
+    UTF8 byte sequence have following format where x is either set ot not
+        single byte : 0xxxxxxx
+        double byte : 110xxxxx 10xxxxxx
+        triple byte : 1110xxxx 10xxxxxx 10xxxxxx
+        fuour  byte : 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+    This might be change since there is a lot of other bits invalid byte to be used as mark 
+*)
+
+let mutable private errorTransitionMark = 255uy
+
+let rec GetLanguage regex =
+    match regex with
+    | regex.Atom (a, _) -> set[a]
+    | regex.Cat (regex1, regex2, _, _, _) | regex.Or (regex1, regex2, _, _, _) ->
+        GetLanguage regex1 + GetLanguage regex2
+    | regex.Star(regex, _, _) -> GetLanguage regex
+    | _ -> set[]
+
+let rec GetCorrespondence regex correspond =
+    match regex with
+    | regex.Atom (a, i) ->
+        match Map.tryFind a correspond with
+        | None -> Map.add a (set[i]) correspond
+        | Some c -> Map.add a (set[i] + c) correspond
+    
+    | regex.Cat (regex1, regex2, _, _, _) | regex.Or (regex1, regex2, _, _, _) ->
+        GetCorrespondence regex1 correspond
+        |> GetCorrespondence regex2
+
+    | Star (regex, _, _) ->
+        GetCorrespondence regex correspond
+
+    | _ -> correspond
+
+
+// OBS the code below are hurtfully inefficient 
+
+let mp = Map.empty |> Map.add 1 7
+
+
+
+
+let StateFinder regex =
+    let mutable DTran = Map.empty
+    let followpos =  Followpos regex Map.empty
+    let language = GetLanguage regex
+    let followposOf = fun item -> Map.find item followpos
+    let correspondTo = fun item -> Map.find item (GetCorrespondence regex Map.empty)
+    
+
+    // use single linked list as two stacks.
+    let mutable unmarked = set[FirstPosOf regex]
+    let mutable marked = set[]
+    // the loop below are fine but not peak optimal in performance
+    // should be changed to perform better
+    while not <| Seq.isEmpty unmarked  do // <> is equal to != in C#
+        // the condition of the loop makes sure that this is always true.
+        let (S :: unmarked') = List.ofSeq unmarked
+        printfn "S is; %A" S
+        unmarked <- set unmarked' // mark first state
+        for a in language do
+            let U = 
+                Seq.fold 
+                    (fun ps p -> ps + followposOf p) 
+                    (set[]) 
+                    (Set.intersect S (correspondTo a))
+            // we do only add a new state to unmarked if it does not appear in both stacks
+            if not (Seq.contains U unmarked || Seq.contains U marked)
+            then 
+                unmarked <- Set.add U unmarked
+            DTran <- Map.add (S,a) U DTran
+        marked <- Set.add S marked
+            
+    
+    // TODO: need to make the minimization algorithm of the DFA
+
+    
+    // we need language to know how large the transition table should be.
+    language, marked, DTran
+
+
+(*
+
+    The code below, build a DFA transition table.
+    an entry set to -1 simulate a illegal transition, at this point the DFA should stop
+    and check for accepting, if not return an error, else return token.
+    
+    If a state in construction find that it has strictly more than 1 acceptance, it pick the one to return
+    that has the earlist pattern in the list of patterns.
+
+*)
+    
+
+let makeTable ((language : byte Set), (states : int Set Set), transitions) =
+    // label states with numbers from 0 to n-1, where n is the number of states
+    let states' = Map.ofSeq <| Seq.zip states [ 0 .. Seq.length states - 1 ]
+
+    // find the minimum and maximum offset of the language
+    let min', max' = int <| Set.minElement language, int <| Set.maxElement language
+    // finde the distance between those two.
+    let size' = max' - min' + 1
+
+    // transition table starting by assuming all transition leads to error
+    let table = [| for _ in 1 .. size' * Seq.length states -> ErrorTransitionMark |]
+    // inserting legal transitions
+    // using Seq. to enable change og collection in the input
+    Seq.fold ( 
+        fun _ letter -> 
+            Seq.fold (
+                fun _ state -> 
+                    let src = Map.find state states'
+                    let index = size' * src + (int letter) - min' 
+                    let dest = Map.find (state, letter) transitions |> fun destination -> Map.find destination states'
+                    // find index of the transtion of the letter from the states offset
+                    // size' * stateNumber finds the offset where the state begin, 
+                    // and letter - min' is the offset from the starting position of the state
+                    // where to be find the correct transition
+                    // find the right state ofset to jump to and change the above entry to the state number
+                    table.[index] <- byte <| dest 
+            ) () states
+        ) () language
+
+    
+
+    table, size', min'
+
+let states' = [set[-3;3;4;5;-1]; set[-5;2;3;4]; set[1;2]]
+let acceptance = [|(fun (_ : string)-> "one"); (fun _ -> "two"); (fun _ -> "three"); (fun _ -> "four"); (fun _ -> "five")|]
+// need the numbering of terminal to be in range -1 .. -n + 1 
+let getAcceptancePrState (states : int Set seq) (acceptance : ('a -> 'b) seq) =
+    let states = Array.ofSeq states
+    let acceptance = Array.ofSeq acceptance
+    let acceptance =
+        Array.zip [|0.. states.Length - 1|] states                                                                                                // number the states, assuming sorted list 
+        |> Array.filter (fun (_, state : int Set) -> Set.exists (fun x -> x < 0) state)                                                           // filter out all non acceptance state
+        |> Array.map (fun (numb, state) -> (numb, state |> Set.filter (fun x -> x < 0) |> Set.maxElement |> fun numb -> acceptance.[-1*numb - 1]))    // extract the acceptance action with hihgest precedence
+        |> Map.ofArray                                                                                                                   // return as a map
+    
+
+    // abusing the TryFind ability to give an option type back, hence automatical setting all none terminal states acceptance to None
+    // and all terminal state to Some tranformation
+    [| for entry in 0 .. states.Length - 1 -> Map.tryFind entry acceptance |]
+
+
+
+
+// NEED TESTING and to find accept array
+let DfaMap (table :byte[]) size min' (accept : (string -> 'a) option[])=
+    fun (input : byte Iter) ->
+        let mutable state = 0uy // initial state
+        let mutable index = 0
+        let mutable noError = true
+        let mutable lexeme = ""
+        let mutable msg = ""
+        let mutable next = input
+        while noError do
+            match Next next with
+            | Success(c, next') ->
+                index <- size * int state + int c - min'
+                let t = table.[index]
+                if index < size * (int state + 1) && t <> ErrorTransitionMark then 
+                    lexeme <- lexeme + (string << char) c // at letter to lexeme
+                    state <- t      // transition to next state
+                    next <- next'   // updating position
+                else 
+                    msg <- "Transition error"
+                    noError <- false
+            
+            | Failure msg' ->
+                msg <- msg'
+                noError <- false
+
+        match accept.[int state] with
+        | Some func -> Success(func lexeme, next)
+        | None -> Failure <| msg
+    |> Map

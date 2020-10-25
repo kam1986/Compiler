@@ -1,0 +1,3 @@
+/home/kasper/Skrivebord/compiler/ImpCom/ImpCom/src/obj/Debug/netcoreapp3.1/ImpCom.fsprojAssemblyReference.cache
+/home/kasper/Skrivebord/compiler/ImpCom/ImpCom/src/obj/Debug/netcoreapp3.1/ImpCom.AssemblyInfoInputs.cache
+/home/kasper/Skrivebord/compiler/ImpCom/ImpCom/src/obj/Debug/netcoreapp3.1/ImpCom.AssemblyInfo.fs
