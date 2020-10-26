@@ -7,7 +7,19 @@ open Regex
 open DFA
 open Lexer
 
-type Token = LET | ID of string | VALUE of int | THEN | ELSE | IF | EQ | SPACE
+type Token = 
+    | LET 
+    | ID of string 
+    | VALUE of int 
+    | IF 
+    | THEN 
+    | ELSE 
+    | EQ 
+    | LPAR | RPAR
+    | SPACE 
+    | BOOL of bool
+
+
 [<EntryPoint>]
 let main argv =
     
@@ -16,29 +28,27 @@ let main argv =
             [|
                 "let",                  fun _ -> LET
                 "if",                   fun _ -> IF
-                "[A-Z][a-z0-9A-Z]*",    ID 
-                " ",                    fun _ -> SPACE
                 "then",                 fun _ -> THEN
                 "else",                 fun _ -> ELSE
                 "=",                    fun _ -> EQ
+                " ",                    fun _ -> SPACE
+                "\\(",                  fun _ -> LPAR // escaped symbol syntax
+                "\\)",                  fun _ -> RPAR
+                "true",                 fun _ -> BOOL true
+                "false",                fun _ -> BOOL false
                 "[0-9]*",               (VALUE << int)
+                "[A-z][a-z0-9]*",      ID // added last because of token precedence
             |]
         )
 
-    let rets = 
-        List.map(fun str -> LexAll lexer (List(str))) ["let Atest = 1234 if else then"]
-        |> List.map (map (List.filter (fun token -> token <> SPACE)))
-    for ret in rets do
-        printfn "%A" ret
+   
 
+    let ret = 
+        LexAll lexer (List("let Atest = 1234 if true then  ( true ) else false"))
+        |> map (List.filter (fun token -> token <> SPACE))
+    
+    printfn "%A" ret
+
+    
     0 // return an integer exit code
 
-
-    (*
-                 a  b
-        state 1: 2  1
-        state 2: 2  3
-        state 3: 2  4
-        state 4: 2  1
-
-    *)

@@ -23,7 +23,7 @@ open Result
 
 // 
 let private ASCII    = set[0uy .. 127uy]
-let private All = set[0uy .. 255uy]
+let private All = set[0uy .. 254uy]
 type regex =
     | Epsilon
     | Terminal of int
@@ -143,18 +143,23 @@ open Iter
 // minimal token type
 type RegexToken =
     | Atom of byte
-    | Epsilon
+    | Qustionmark
     | OR 
     | CAT
     | STAR
     | PLUS
 
-let IsA col a = Seq.contains a col
+let IsA col a = 
+    match Map.tryFind a col with
+    | None -> false
+    | _ -> true
+    
 let IsNotA col a = IsA col a |> not
 
 let keyword = 
-    set['\\'; '|'; '*'; '+'; '-'; '['; ']'; '('; ')'; '^'; 'â']
-    |> Set.map byte
+    set['\\'; '|'; '*'; '+'; '?'; '-'; '['; ']'; '('; ')'; '^'; 'â']
+    |> Set.map (fun b -> byte b, ())
+    |> Map.ofSeq
 
 let RegexError msg =
     sprintf "Regex Error:\n\t%s" msg
@@ -290,7 +295,6 @@ let ASCIIComplement =
         |> oring
     )
 
-
 // Parsin paranteses
 let Paranteses pattern =
     Expect (fun b -> b = byte '(') <&> pattern <&> Expect (fun b -> b = byte ')')
@@ -311,6 +315,10 @@ let cat pattern =
            |> fun pattern' -> Run pattern' input
     Map c
 
+// doesn't work
+let Maybe pattern =
+    pattern <&> Expect (fun b -> b = byte '?')
+    |> (>>) (fun (reg, _) -> Qustionmark :: reg) 
 
 // Parsing star regex over some pattern and prefixing the or for simpler parsing to syntaks tree
 let star pattern =
@@ -326,7 +334,8 @@ let plus pattern =
 let Primitives pattern = Paranteses pattern <|> Interval <|> Complement <|> ASCIIComplement <|> Escape <|> Atom
 
 let starPlusPrim pattern =
-    star (Primitives pattern) <|> plus (Primitives pattern) <|> Primitives pattern
+    let p = Primitives pattern
+    Maybe p <|>  star p <|> plus p <|> p
 
 let Tokenizer = 
     let rec regex input =
@@ -348,8 +357,9 @@ let Parser count =
                 let a' = regex.Atom(a, count)
                 count <- count + 1
                 Success(a', iter)
-            | _ ->
-                Failure "Parser Error: not an atom"
+            | Success(a,iter) ->
+                Failure <| "Parser Error: " + string a + " is not an atom"
+            | _ -> Failure <| "Parser Error: not an atom"
         |> Map
 
     let star pattern =
@@ -361,6 +371,9 @@ let Parser count =
         Expect (fun token -> token = PLUS) <&> pattern
         |> (>>) (fun (_, regex) -> Plus regex)
         
+    let questionmark pattern =
+        Expect (fun token -> token = Qustionmark) <&> pattern
+        |> (>>) (fun (_, regex) -> Or regex Epsilon)
 
     let Cat pattern =
         Expect (fun token -> token = CAT) <&> pattern <&> pattern
@@ -375,9 +388,11 @@ let Parser count =
 
     let Regex =
         let rec regex input =
-            Orr (Map regex) <|> Cat (Map regex) <|> star (Map regex) <|> plus (Map regex) <|> atom
+            let reg = Map regex
+            Orr reg <|> Cat reg <|> questionmark reg <|> star reg <|> plus reg <|> atom
             |> fun pattern -> Run pattern input
         Map regex
+
     fun input ->
         match Run Regex input with
         | Success (regex, iter) -> Success((regex, count), iter)

@@ -71,14 +71,12 @@ let StateFinder regex =
     let mutable marked = []
     // the loop below are fine but not peak optimal in performance
     // should be changed to perform better
-    while not <| Seq.isEmpty unmarked  do // <> is equal to != in C#
+    while unmarked <> []  do // <> is equal to != in C#
         // the condition of the loop makes sure that this is always true.
-        let (S :: unmarked') = List.ofSeq unmarked
-        
+        let (S :: unmarked') = unmarked
         unmarked <- unmarked' // mark first state
         for a in language do
-            let U = 
-                
+            let U =
                 Seq.fold 
                     (fun ps p -> ps + followposOf p) 
                     (set[]) 
@@ -138,7 +136,6 @@ let makeTable ((language : byte Set), (states : int Set list), transitions) =
                     table.[index] <- byte <| dest 
             ) () states
         ) () language
-
     
 
     table, size', min'

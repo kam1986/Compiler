@@ -64,4 +64,8 @@ let Lift2 func param1 param2 =
 let Reduce serializer acc mlst =
     Seq.foldBack (fun acc next -> (Lift2 serializer) acc next) mlst &acc
 
-    
+let FailureMap f map =
+    fun input ->
+        match Run map input with
+        | Success ret -> Success ret
+        | Failure msg -> Failure (f msg)

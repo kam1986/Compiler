@@ -59,15 +59,9 @@ type Lexer<'token> =
             ) patterns
             |> Array.reduce Or
 
-        let (language, states, Dtran) as ret = StateFinder regex
+        let (_, states, _) as ret = StateFinder regex
         let table, size', min' = makeTable ret
-        printfn "states %A" states
-        printfn "size %d" size'
-        printfn "min %d" min'
-        printfn "table %A" table
-        Map.fold (fun _ src dst ->  printfn "transition %A" (src,dst)) () Dtran
         let maybeAccept = getAcceptancePrState states accepts
-        printfn "accept: %A" maybeAccept
         let map = DfaMap table size' min' maybeAccept
 
         { pattern = map }
@@ -81,11 +75,10 @@ let LexNext (pattern : Lexer<'token>) = Lexer.LexNext pattern
 let LexAll pattern =
     let rec acc tokens input =
         match LexNext pattern input with
-        | Success (token, iter) -> 
-            printfn "Token: %A" token
-            iter.Show
-            acc (token :: tokens) iter
-        | Failure msg -> Success (List.rev tokens)
+        | Success (token, iter) -> acc (token :: tokens) iter
+        | Failure _ -> 
+            match IsEmpty input with
+            | true -> Success(List.rev tokens)
+            | _ -> Failure "Lexical error"
     acc []
-
-
+   
