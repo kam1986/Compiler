@@ -24,7 +24,7 @@ open Mapping
     This might be change since there is a lot of other bits invalid byte to be used as mark 
 *)
 
-let mutable private errorTransitionMark = 255uy
+let private ErrorTransitionMark = 255uy
 
 let rec GetLanguage regex =
     match regex with
@@ -67,17 +67,18 @@ let StateFinder regex =
     
 
     // use single linked list as two stacks.
-    let mutable unmarked = set[FirstPosOf regex]
-    let mutable marked = set[]
+    let mutable unmarked = [FirstPosOf regex]
+    let mutable marked = []
     // the loop below are fine but not peak optimal in performance
     // should be changed to perform better
     while not <| Seq.isEmpty unmarked  do // <> is equal to != in C#
         // the condition of the loop makes sure that this is always true.
         let (S :: unmarked') = List.ofSeq unmarked
-        printfn "S is; %A" S
-        unmarked <- set unmarked' // mark first state
+        
+        unmarked <- unmarked' // mark first state
         for a in language do
             let U = 
+                
                 Seq.fold 
                     (fun ps p -> ps + followposOf p) 
                     (set[]) 
@@ -85,16 +86,16 @@ let StateFinder regex =
             // we do only add a new state to unmarked if it does not appear in both stacks
             if not (Seq.contains U unmarked || Seq.contains U marked)
             then 
-                unmarked <- Set.add U unmarked
+                unmarked <- (U :: unmarked)
             DTran <- Map.add (S,a) U DTran
-        marked <- Set.add S marked
+        marked <- List.distinct (S :: marked)
             
     
     // TODO: need to make the minimization algorithm of the DFA
 
     
     // we need language to know how large the transition table should be.
-    language, marked, DTran
+    language, List.rev marked, DTran
 
 
 (*
@@ -109,7 +110,7 @@ let StateFinder regex =
 *)
     
 
-let makeTable ((language : byte Set), (states : int Set Set), transitions) =
+let makeTable ((language : byte Set), (states : int Set list), transitions) =
     // label states with numbers from 0 to n-1, where n is the number of states
     let states' = Map.ofSeq <| Seq.zip states [ 0 .. Seq.length states - 1 ]
 
@@ -142,14 +143,13 @@ let makeTable ((language : byte Set), (states : int Set Set), transitions) =
 
     table, size', min'
 
-let states' = [set[-3;3;4;5;-1]; set[-5;2;3;4]; set[1;2]]
-let acceptance = [|(fun (_ : string)-> "one"); (fun _ -> "two"); (fun _ -> "three"); (fun _ -> "four"); (fun _ -> "five")|]
+
 // need the numbering of terminal to be in range -1 .. -n + 1 
 let getAcceptancePrState (states : int Set seq) (acceptance : ('a -> 'b) seq) =
     let states = Array.ofSeq states
     let acceptance = Array.ofSeq acceptance
     let acceptance =
-        Array.zip [|0.. states.Length - 1|] states                                                                                                // number the states, assuming sorted list 
+        Array.zip [|0 .. states.Length-1|] states                                                                                                // number the states, assuming sorted list 
         |> Array.filter (fun (_, state : int Set) -> Set.exists (fun x -> x < 0) state)                                                           // filter out all non acceptance state
         |> Array.map (fun (numb, state) -> (numb, state |> Set.filter (fun x -> x < 0) |> Set.maxElement |> fun numb -> acceptance.[-1*numb - 1]))    // extract the acceptance action with hihgest precedence
         |> Map.ofArray                                                                                                                   // return as a map
@@ -168,6 +168,7 @@ let DfaMap (table :byte[]) size min' (accept : (string -> 'a) option[])=
         let mutable state = 0uy // initial state
         let mutable index = 0
         let mutable noError = true
+        let mutable acc = None
         let mutable lexeme = ""
         let mutable msg = ""
         let mutable next = input
@@ -175,11 +176,13 @@ let DfaMap (table :byte[]) size min' (accept : (string -> 'a) option[])=
             match Next next with
             | Success(c, next') ->
                 index <- size * int state + int c - min'
-                let t = table.[index]
-                if index < size * (int state + 1) && t <> ErrorTransitionMark then 
+                if index < size * (int state + 1) && table.[index] <> ErrorTransitionMark then 
+                    state <- table.[index]      // transition to next state
                     lexeme <- lexeme + (string << char) c // at letter to lexeme
-                    state <- t      // transition to next state
                     next <- next'   // updating position
+                    match accept.[int state] with
+                    | Some func -> acc <- Some(func, lexeme, next)
+                    | _ -> ()
                 else 
                     msg <- "Transition error"
                     noError <- false
@@ -188,7 +191,7 @@ let DfaMap (table :byte[]) size min' (accept : (string -> 'a) option[])=
                 msg <- msg'
                 noError <- false
 
-        match accept.[int state] with
-        | Some func -> Success(func lexeme, next)
+        match acc with
+        | Some (func, l, next) -> Success(func l, next)
         | None -> Failure <| msg
     |> Map

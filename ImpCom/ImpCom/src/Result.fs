@@ -27,3 +27,8 @@ let Return ret =
     | Failure msg ->
         printfn "%s" msg
         exit -1
+
+let map f ret =
+    match ret with
+    | Success a -> Success (f a)
+    | Failure msg -> Failure msg 

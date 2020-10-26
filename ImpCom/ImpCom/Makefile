@@ -34,7 +34,7 @@ AST=bin/AST.dll
 
 Compiler=bin/Compiler.exe
 
-all:  $(Compiler)
+all:  $(Lexer) $(Compiler)
 
 $(Iter): src/Iter.fs $(Decoding) $(Result)
 	$(fsc) -a src/Iter.fs  -o $(Iter) -r $(Decoding) -r $(Result) 
@@ -56,8 +56,11 @@ $(Map): src/Map.fs $(Result) $(Iter)
 $(DFA): src/DFA.fs $(Regex) $(Result) $(Iter) $(Map)
 	$(fsc) -a src/DFA.fs -o $(DFA) -r $(Regex) -r $(Result) -r $(Iter) -r $(Map)
 
-$(Compiler): src/Compiler.fsx $(Result) $(Iter) $(Map) $(Regex) $(DFA)
-	$(fsc) src/Compiler.fsx -o $(Compiler) -r $(Result) -r $(Iter) -r $(Map) -r $(Regex) -r $(DFA)
+$(Lexer): src/Lexer.fs $(Regex) $(Result) $(Iter) $(Map) $(DFA)
+	$(fsc) -a src/Lexer.fs -o $(Lexer) -r $(Regex) -r $(Result) -r $(Iter) -r $(Map) -r $(DFA)
+
+$(Compiler): src/Compiler.fs $(Lexer) $(Result) $(Iter) $(Map) $(Regex) $(DFA) 
+	$(fsc) src/Compiler.fs -o $(Compiler) -r $(Result) -r $(Iter) -r $(Map) -r $(Regex) -r $(DFA) -r $(Lexer)
 
 clean:
 	rm -rf bin/*
