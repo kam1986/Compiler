@@ -95,9 +95,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\src\\ImpCom.fsproj",
-      "projectName": "ImpCom",
-      "projectPath": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\src\\ImpCom.fsproj",
+      "projectUniqueName": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\src\\Compiler.fsproj",
+      "projectName": "Compiler",
+      "projectPath": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\src\\Compiler.fsproj",
       "packagesPath": "C:\\Users\\KAM\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\src\\obj\\",
       "projectStyle": "PackageReference",

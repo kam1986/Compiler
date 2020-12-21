@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "caWbw9uU/LqxlY6IW5CYQAnnNftNaONpRcCVtduTFM6RPcJKHEMKupBjgWVYVR+yQf0bRanI0fsS9deqjXsLug==",
+  "dgSpecHash": "bYZGgXghdISwQJ4wcXaq/G7Bj0jGNtryWXQ5jqC76/kuzZOqj4/sWepBCDBUEYebEFUT0KpYBmlBBTKQzWSIoQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\src\\ImpCom.fsproj",
+  "projectFilePath": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\src\\Compiler.fsproj",
   "expectedPackageFiles": [
     "C:\\Users\\KAM\\.nuget\\packages\\fsharp.core\\5.0.0\\fsharp.core.5.0.0.nupkg.sha512"
   ],
