@@ -11,8 +11,12 @@ When done it will be a general purpose concurrent reversible functional language
     * Symbol Table Interface implemented, which ease code changes, and enable testing different scooping schemes depending on the symboltable 
 
 ## TODO
-   * more testing on all parts
-
+    * more testing on all parts
+   
+    * LR(k) for user defined k where the table is represented by a compressed table of an array of arrays.
+    * rewriting campability of CFG to make the input grammar more easy to write
+    * Implementaition of indentation sensitivity of the parser
+   
     * Changing implementation of tokens and arguments in the lexer/parser to a two interface implementation for easier maintaince.
     
     * Type Checker
