@@ -22,7 +22,7 @@ When done it will be a general purpose concurrent reversible functional language
     
     * Interpreter
     
-    * Code generator which produce valid Rust code as output to be compiled. 
+    * Code generator which produce valid Rust code as output to be compiled, with focus on Rust bad compiler handling of tail recursion.
    
     
 ### when interpreter works
