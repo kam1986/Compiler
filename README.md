@@ -1,7 +1,7 @@
 # Compiler
 This is going to be a toy compiler for now with all stages implemented by my self.
 
-When done it will be a general purpose Reversible functional language. Reversible in the sense that if f is a function in program P then are the reverse function g also in P, hence f(g(x)) = g(f(x)) = x.
+When done it will be a general purpose concurrent reversible functional language. Reversible in the sense that if f is a function in program P then are the reverse function g also in P, hence f(g(x)) = g(f(x)) = x.
 
 
 
