@@ -22,6 +22,9 @@ When done it will be a general purpose concurrent reversible functional language
     
     * Interpreter
     
+    * Code generator which produce valid Rust code as output to be compiled. 
+   
+    
 ### when interpreter works
     * Intermediate language (2 kind, a typed and untyped)
     * Assembler (Arm is first focus)
