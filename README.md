@@ -7,21 +7,22 @@ When done it will be a general purpose concurrent reversible functional language
 
 ## wokring
     * Lexer
-        - Own lexer generator writen in F#, DFA based in contrast to FSyacc which use System.Text.Regex that is based on NFA. This should increase speed but not in any case near yacc for C. No code generation step needed. 
     * Parser
-        - Own parser generator writen in F#, should again be a DFA/stack driven LR Parser generator. again no code generation step needed and should be at least as fast as Fsyacc.
-    
-    * Symbol Table
-        - Interface implemented, which ease code changes, and enable testing different scooping schemes depending on the symboltable 
+    * Symbol Table Interface implemented, which ease code changes, and enable testing different scooping schemes depending on the symboltable 
 
 ## TODO
     * Changing implementation of tokens and arguments in the lexer/parser to an two interface implementation for easier maintaince.
     
     * Type Checker
         - for the functional, imperative and intermidate language, based on SML type system.
+        
+    * Reversible constraint checker.
 
     * Optimizer (both in high and low level language)
-
+    
+    * Interpreter
+    
+### when interpreter works
     * Intermediate language (2 kind, a typed and untyped)
     * Assembler (Arm is first focus)
     * Linker to avoid external software
