@@ -11,7 +11,7 @@ When done it will be a general purpose concurrent reversible functional language
     * Symbol Table Interface implemented, which ease code changes, and enable testing different scooping schemes depending on the symboltable 
 
 ## TODO
-    * Changing implementation of tokens and arguments in the lexer/parser to an two interface implementation for easier maintaince.
+    * Changing implementation of tokens and arguments in the lexer/parser to a two interface implementation for easier maintaince.
     
     * Type Checker
         - for the functional, imperative and intermidate language, based on SML type system.
