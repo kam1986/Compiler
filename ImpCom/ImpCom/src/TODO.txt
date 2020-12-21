@@ -1,0 +1,9 @@
+﻿
+TODO
+
+1. make a expandable stack type with smart indexing
+2. figur out how to collect and handle array of non-uniform functions
+3. finish recursive function for SLR parsing.
+4. expand to LALR parser
+5. test test test
+6. done

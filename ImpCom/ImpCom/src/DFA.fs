@@ -3,11 +3,13 @@
 #nowarn "25"
 // just a junk function showing that we can make 'maybe equal' 
 // let ( ?= ) a b = if a = b then Ok b else sprintf "%A is not equal %A" a b |> Error 
+open Position
 open Result
 open Regex
 open Iter
 open Mapping
-
+open TypeAcrobatics
+open Token
 (* 
     For now we use Maximum value of a byte as error mark.
     This is do to the ASCII encoding uses only the 0 - 127 interval
@@ -82,16 +84,18 @@ let StateFinder regex =
                     (set[]) 
                     (Set.intersect S (correspondTo a))
             // we do only add a new state to unmarked if it does not appear in both stacks
-            if not (Seq.contains U unmarked || Seq.contains U marked)
-            then 
-                unmarked <- (U :: unmarked)
-            DTran <- Map.add (S,a) U DTran
-        marked <- List.distinct (S :: marked)
+            if (not << Set.isEmpty) U then
+                if not (Seq.contains U unmarked || Seq.contains U marked) then 
+                    unmarked <- (U :: unmarked)
+            
+                DTran <- Map.add (S,a) U DTran
+        if not <| Set.isEmpty S then
+
+            marked <- List.distinct (S :: marked)
             
     
     // TODO: need to make the minimization algorithm of the DFA
 
-    
     // we need language to know how large the transition table should be.
     language, List.rev marked, DTran
 
@@ -109,6 +113,7 @@ let StateFinder regex =
     
 
 let makeTable ((language : byte Set), (states : int Set list), transitions) =
+
     // label states with numbers from 0 to n-1, where n is the number of states
     let states' = Map.ofSeq <| Seq.zip states [ 0 .. Seq.length states - 1 ]
 
@@ -127,13 +132,17 @@ let makeTable ((language : byte Set), (states : int Set list), transitions) =
                 fun _ state -> 
                     let src = Map.find state states'
                     let index = size' * src + (int letter) - min' 
-                    let dest = Map.find (state, letter) transitions |> fun destination -> Map.find destination states'
-                    // find index of the transtion of the letter from the states offset
-                    // size' * stateNumber finds the offset where the state begin, 
-                    // and letter - min' is the offset from the starting position of the state
-                    // where to be find the correct transition
-                    // find the right state ofset to jump to and change the above entry to the state number
-                    table.[index] <- byte <| dest 
+                    // fix here
+                    match Map.tryFind (state, letter) transitions with
+                    | None -> ()
+                    | Some destination -> 
+                        let dest = Map.find destination states'
+                        // find index of the transtion of the letter from the states offset
+                        // size' * stateNumber finds the offset where the state begin, 
+                        // and letter - min' is the offset from the starting position of the state
+                        // where to be find the correct transition
+                        // find the right state ofset to jump to and change the above entry to the state number
+                        table.[index] <- byte <| dest 
             ) () states
         ) () language
     
@@ -142,53 +151,57 @@ let makeTable ((language : byte Set), (states : int Set list), transitions) =
 
 
 // need the numbering of terminal to be in range -1 .. -n + 1 
-let getAcceptancePrState (states : int Set seq) (acceptance : ('a -> 'b) seq) =
+let getAcceptancePrState (states : int Set seq) (acceptance : ('token * ('a -> 'b)) seq) =
     let states = Array.ofSeq states
     let acceptance = Array.ofSeq acceptance
-    let acceptance =
-        Array.zip [|0 .. states.Length-1|] states                                                                                                // number the states, assuming sorted list 
-        |> Array.filter (fun (_, state : int Set) -> Set.exists (fun x -> x < 0) state)                                                           // filter out all non acceptance state
-        |> Array.map (fun (numb, state) -> (numb, state |> Set.filter (fun x -> x < 0) |> Set.maxElement |> fun numb -> acceptance.[-1*numb - 1]))    // extract the acceptance action with hihgest precedence
-        |> Map.ofArray                                                                                                                   // return as a map
+    let acceptance' =
+        Array.zip [|0 .. states.Length-1|] states                                                                                                               // number the states, assuming sorted list 
+        |> Array.filter (fun (_, state) -> Set.exists (fun x -> x < 0) state)                                                                         // filter out all non acceptance state
+        |> Array.map (fun (numb, state) -> numb, state |> Set.filter (fun x -> x < 0) |> Set.maxElement |> fun action -> acceptance.[-action-1])   // extract the acceptance action with hihgest precedence
+        |> Map.ofArray                                                                                                                                          // return as a map
     
 
     // abusing the TryFind ability to give an option type back, hence automatical setting all none terminal states acceptance to None
     // and all terminal state to Some tranformation
-    [| for entry in 0 .. states.Length - 1 -> Map.tryFind entry acceptance |]
+    [| for entry in 0 .. states.Length-1 -> Map.tryFind entry acceptance' |]
 
 
 
 
 // NEED TESTING and to find accept array
-let DfaMap (table :byte[]) size min' (accept : (string -> 'a) option[])=
+let DfaMap (table : byte[]) size min' (accept : ('token * (string -> token)) option[])=
+    
     fun (input : byte Iter) ->
         let mutable state = 0uy // initial state
         let mutable index = 0
         let mutable noError = true
-        let mutable acc = None
+        let mutable token = None
         let mutable lexeme = ""
         let mutable msg = ""
         let mutable next = input
         while noError do
             match Next next with
-            | Success(c, next') ->
+            | Ok(c, next') ->
                 index <- size * int state + int c - min'
-                if index < size * (int state + 1) && table.[index] <> ErrorTransitionMark then 
-                    state <- table.[index]      // transition to next state
-                    lexeme <- lexeme + (string << char) c // at letter to lexeme
-                    next <- next'   // updating position
+                
+                if index < size * (int state + 1) && index >= 0 && table.[index] <> ErrorTransitionMark then 
+                    state <- table.[index]                  // transition to next state
+                    lexeme <- lexeme + (string << char) c   // at letter to lexeme
+                    next <- next'                           // updating position
                     match accept.[int state] with
-                    | Some func -> acc <- Some(func, lexeme, next)
+                    | Some func -> token <- Some(func, lexeme, next)
                     | _ -> ()
                 else 
                     msg <- "Transition error"
                     noError <- false
             
-            | Failure msg' ->
+            | Error msg' ->
                 msg <- msg'
                 noError <- false
 
-        match acc with
-        | Some (func, l, next) -> Success(func l, next)
-        | None -> Failure <| msg
+        match token with
+        // return token type as an integer
+        // should check that the token type is correct
+        | Some ((tokentype, func), l, next) -> Ok(Token(tokentype, func l, GetPos next), next)
+        | None -> Error <| msg
     |> Map

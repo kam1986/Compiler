@@ -1,37 +1,31 @@
 module TypeAcrobatics
 
-// just a placeholder
+/// Abstraction that hide the type from the type system.
+/// enabling collection of none uniform types
 type Type = Type of obj
 
 let inline AnyType t = Type (t :> obj)
 
 // carry argument as a postpond transformation
 // i.e. the type checking is first done, at run time. 
-type Arg = Arg of (unit -> Type)
+type token = Arg of (unit -> Type)
 
 
 let inline Delay work input = 
     fun _ -> work input |> AnyType
     |> Arg 
 
+let Arg item = Delay id item
+
+
+/// This safely cast the the type
+/// will throw an error if the return value are not use properly
+/// example:
+///     let One = Arg 1
+///     printfn "%d" <| Take One // here the expected input of printfn is int do To '%d' it also do fine with %A
 let inline Take (Arg a) = 
     let (Type t) = a()
-    t :?> _ // this will be infered by where we put the value
+    t :?> _ 
 
 
-
-type TYPES = INT of int | FLOAT of float | ERROR
-
-// a way to fuck with the type system :D 
-let GetValue (Type t) = t :?> _
-
-// This  enable type conversion when tranforming without specific type parameters given
-
-let toFloat (str : string) = System.Double.Parse str
-let toInt (str : string) = System.Int32.Parse str
-
-let d = Delay toFloat "0.113"
-let i = Delay toInt "123"
-
-let ret3 = FLOAT <| GetValue (Take d)
-let ret4 = INT <| GetValue (Take i)
+let t = [Arg (printfn "first"); Arg 1; Arg 2.3]

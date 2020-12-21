@@ -2,44 +2,29 @@
 
 #nowarn "64"
 
-open Result
+open Return
 open Mapping
 open Iter
 open Regex
 open DFA
+open TypeAcrobatics
+open Token
 
 let LexError msg =
     sprintf "Lexing Error:\n\t%s" msg
-    |> Failure
+    |> Error
 
-let private Atom expect =
-    let inline a input =
-        match Next (input : 'input Iter) with
-        | Failure msg -> 
-            Prev input
-            Failure msg
-        | Success(b, next) when expect = b -> Success(b, next)
-        | Success(b, next) ->
-            Prev next
-            sprintf "Expected byte %d but got byte %d" expect b
-            |> LexError
-    Map a
 
-// TODO Need to rework this to handle regular expression
-let private lexeme pattern token =
-    fun input ->
-        match Run pattern input with
-        | Success(_, iter) -> Success(token, iter)
-        | Failure msg -> Failure msg
-    |> Map
-
+let ( != ) (str : string) (token : 't when 't : equality, ret) = (str, (token, fun input -> Delay ret input))
+let ( := ) (str : string) (token : 't when 't : equality) = (str, (token, fun _ -> Arg null)) // should not be used to anything
+let ( --> ) (token : 't when 't : equality) ret = (token, ret)
 
 
 [<Struct>]
-type Lexer<'token> =
-    val private pattern : Map<byte, 'token>
+type Lexer<'token when 'token : equality> =
+    val private pattern : Map<byte, 'token Token>
     private new (pattern) = { pattern = pattern }
-    new (tokens : array<string * (string -> 'token)>) =
+    new (tokens : array<string * ('token * (string -> token))>) =
         assert(tokens.Length > 0)
         let mutable count = 0
         let mutable term = 0
@@ -62,23 +47,41 @@ type Lexer<'token> =
         let (_, states, _) as ret = StateFinder regex
         let table, size', min' = makeTable ret
         let maybeAccept = getAcceptancePrState states accepts
+
         let map = DfaMap table size' min' maybeAccept
 
         { pattern = map }
 
-    static member LexNext (pattern : Lexer<'token>) = Run pattern.pattern 
+    static member LexNext (pattern : Lexer<'a>) = Run pattern.pattern 
     
     
 
-let LexNext (pattern : Lexer<'token>) = Lexer.LexNext pattern
+let LexNext pattern = Lexer<'a>.LexNext pattern
 
 let LexAll pattern =
     let rec acc tokens input =
         match LexNext pattern input with
-        | Success (token, iter) -> acc (token :: tokens) iter
-        | Failure _ -> 
+        | Ok (token, iter) -> acc (token :: tokens) iter
+        | Error _ -> 
             match IsEmpty input with
-            | true -> Success(List.rev tokens)
-            | _ -> Failure "Lexical error"
+            | true -> Ok(List.rev tokens)
+            | _ -> Error "Lexical error"
     acc []
    
+
+let Tokens pattern input =
+    let rec sequence input =
+        match LexNext pattern input with
+        | Ok (token, iter) -> 
+            seq { 
+                yield token
+                yield! sequence iter
+            }
+        | Error msg -> 
+            match IsEmpty input with
+            | true -> Seq.empty
+            | _ ->
+                printfn "%s" msg
+                exit -1
+    
+    sequence input

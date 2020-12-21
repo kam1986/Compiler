@@ -18,11 +18,11 @@
     TODO: Interval and complements
 *)
 
-open Result
+
 
 
 // 
-let private ASCII    = set[0uy .. 127uy]
+let  ASCII    = set[0uy .. 127uy]
 let private All = set[0uy .. 254uy]
 type regex =
     | Epsilon
@@ -163,19 +163,19 @@ let keyword =
 
 let RegexError msg =
     sprintf "Regex Error:\n\t%s" msg
-    |> Failure
+    |> Error
 
 // Lexing after a legal atom
 let Atom =
     fun input ->
         match Next input with
-        | Failure msg -> Failure msg
-        | Success (b, iter) when b |> IsNotA keyword  -> 
-            Success(RegexToken.Atom b, iter)
-        | Success (b, iter) ->
+        | Ok (b, iter) when b |> IsNotA keyword  -> 
+            Ok(RegexToken.Atom b, iter)
+        | Ok (b, iter) ->
             Prev iter
             sprintf "Expected an atom but got %c" <| char b
             |> RegexError
+        | Error msg -> Error msg
     |> Map
     |> (>>) (fun reg -> [reg])
 
@@ -184,10 +184,10 @@ let Atom =
 let inline Expect pred  =
     fun input ->
         match Next input with
-        | Failure msg -> Failure msg
-        | Success (b, iter) when pred b -> 
-            Success(b, iter)
-        | Success (_, iter) ->
+        | Error msg -> Error msg
+        | Ok (b, iter) when pred b -> 
+            Ok(b, iter)
+        | Ok (_, iter) ->
             Prev iter
             sprintf "Error in parsing " 
             |> RegexError
@@ -202,15 +202,15 @@ let Escape =
         |>  (>>) (fun (_, b) -> b)
     fun input ->
         match Run pattern input with
-        | Failure msg -> Failure msg
-        | Success (116uy, iter) ->
-            Success(RegexToken.Atom 9uy, iter)
-        | Success (110uy, iter) ->
-            Success(RegexToken.Atom 10uy, iter)
-        | Success (114uy, iter) ->
-            Success(RegexToken.Atom 13uy, iter)
-        | Success (b, iter) ->
-            Success(RegexToken.Atom b, iter)
+        | Error msg -> Error msg
+        | Ok (116uy, iter) ->
+            Ok(RegexToken.Atom 9uy, iter)
+        | Ok (110uy, iter) ->
+            Ok(RegexToken.Atom 10uy, iter)
+        | Ok (114uy, iter) ->
+            Ok(RegexToken.Atom 13uy, iter)
+        | Ok (b, iter) ->
+            Ok(RegexToken.Atom b, iter)
     |> Map
     |> (>>) (fun reg -> [reg])
 
@@ -262,34 +262,7 @@ let Complement =
 
     Expect (fun b -> b = byte '[') <&> Expect (fun b -> b = byte '^') <&> Map inner <&> Expect (fun b -> b = byte ']')
     |> (>>) (fun ((_,regex),_) -> 
-        All - regex // taking the compliement
-        |> Seq.map (fun a -> RegexToken.Atom a)
-        |> Seq.toList
-        |> oring
-    )
-
-
-let ASCIIComplement =
-    let rec inner input =
-        ((Atom <|> Escape) <&> Expect (fun b -> b = byte '-') <&> (Atom <|> Escape)) 
-        |> (>>) (fun (([RegexToken.Atom a], _), [RegexToken.Atom b]) -> 
-                if a < b 
-                then set[a..b]
-                else set[b..a]                
-            )
-        |> fun pattern -> pattern <|> ((fun [Atom a] -> set[a]) >> Atom)
-        |> fun pattern -> (fun (s1, s2) -> s1 + s2) >> (pattern <&> (Map inner)) <|> pattern // elemination doublicates
-        |> fun pattern -> Run pattern input
-    
-    let oring lst =
-        match lst with
-        | [] -> []
-        | [x] -> [x]
-        | x :: xs -> List.fold (fun acc a -> OR :: a :: acc) [x] xs
-
-    Expect (fun b -> b = byte '[') <&> Expect (fun b -> b = byte 'â') <&> Map inner <&> Expect (fun b -> b = byte ']')
-    |> (>>) (fun ((_,regex),_) -> 
-        ASCII - regex // taking the compliement of in respect to the ascii character set
+        ASCII - regex // taking the compliement
         |> Seq.map (fun a -> RegexToken.Atom a)
         |> Seq.toList
         |> oring
@@ -331,11 +304,13 @@ let plus pattern =
     pattern <&> Expect (fun b -> b = byte '+')
     |> (>>) (fun (reg, _) -> PLUS :: reg)
 
-let Primitives pattern = Paranteses pattern <|> Interval <|> Complement <|> ASCIIComplement <|> Escape <|> Atom
+let Primitives pattern = Paranteses pattern <|> Interval <|> Complement <|> Escape <|> Atom
+
 
 let starPlusPrim pattern =
+    // to minimize copying 
     let p = Primitives pattern
-    Maybe p <|>  star p <|> plus p <|> p
+    Maybe p <|> star p <|> plus p <|> p
 
 let Tokenizer = 
     let rec regex input =
@@ -353,13 +328,13 @@ let Parser count =
     let atom = 
         fun input ->
             match Next input with
-            | Success (Atom a, iter) ->
+            | Ok (Atom a, iter) ->
                 let a' = regex.Atom(a, count)
                 count <- count + 1
-                Success(a', iter)
-            | Success(a,iter) ->
-                Failure <| "Parser Error: " + string a + " is not an atom"
-            | _ -> Failure <| "Parser Error: not an atom"
+                Ok(a', iter)
+            | Ok(a,iter) ->
+                Error <| "Parser Error: " + string a + " is not an atom"
+            | _ -> Error <| "Parser Error: not an atom"
         |> Map
 
     let star pattern =
@@ -395,8 +370,8 @@ let Parser count =
 
     fun input ->
         match Run Regex input with
-        | Success (regex, iter) -> Success((regex, count), iter)
-        | Failure msg -> Failure msg
+        | Ok (regex, iter) -> Ok((regex, count), iter)
+        | Error msg -> Error msg
     |> Map
 
     
