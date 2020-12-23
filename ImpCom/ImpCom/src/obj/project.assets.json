@@ -51,6 +51,19 @@
             "locale": "zh-Hant"
           }
         }
+      },
+      "ParLex/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v3.1",
+        "dependencies": {
+          "FSharp.Core": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/ParLex.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/ParLex.dll": {}
+        }
       }
     }
   },
@@ -81,11 +94,17 @@
         "lib/netstandard2.0/zh-Hans/FSharp.Core.resources.dll",
         "lib/netstandard2.0/zh-Hant/FSharp.Core.resources.dll"
       ]
+    },
+    "ParLex/1.0.0": {
+      "type": "project",
+      "path": "../ParLex/ParLex.fsproj",
+      "msbuildProject": "../ParLex/ParLex.fsproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v3.1": [
-      "FSharp.Core >= 5.0.0"
+      "FSharp.Core >= 5.0.0",
+      "ParLex >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -119,7 +138,11 @@
       "frameworks": {
         "netcoreapp3.1": {
           "targetAlias": "netcoreapp3.1",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\ParLex\\ParLex.fsproj": {
+              "projectPath": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\ParLex\\ParLex.fsproj"
+            }
+          }
         }
       }
     },

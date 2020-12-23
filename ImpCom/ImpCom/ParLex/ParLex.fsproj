@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Decoding.fs" />
+    <Compile Include="Result.fs" />
+    <Compile Include="Position.fs" />
+    <Compile Include="TypeAcrobatics.fs" />
+    <Compile Include="Token.fs" />
+    <Compile Include="Iter.fs" />
+    <Compile Include="Map.fs" />
+    <Compile Include="Regex.fs" />
+    <Compile Include="NFA.fs" />
+    <Compile Include="DFA.fs" />
+    <Compile Include="Productions.fs" />
+    <Compile Include="Lexer.fs" />
+    <Compile Include="Parser.fs" />
+  </ItemGroup>
+
+</Project>

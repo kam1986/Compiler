@@ -3,83 +3,48 @@
 // fix placing of actions in the action table
 open Return
 open Iter
-open Mapping
-open Regex
-open DFA
 open Lexer
-open TypeAcrobatics
 open Token
 open Productions
 open Parser
-open Position
-open SyntaxTree
-
-
-type NT = T | R
-type Term = A | B | C
-(*
-let TP = 
-    Productions [
-        T => [
-            [&R] >> fun args -> ValueOf args.[0]
-            [!A; &T; !C] >> fun args -> string (ValueOf args.[0]) + string (ValueOf args.[1]) + string (ValueOf args.[2])
-        ]
-        R => [
-            [] >> fun _ -> ()
-            [!B;&R] >> fun args -> string (ValueOf args.[0]) + string (ValueOf args.[1])
-        ]
-    ]
-    |> SLR.Create
-
-let TL =
-    [|
-        "a" != A --> string
-        "b" != B --> string
-        "c" != C --> string
-    |]
-    |> Lexer
-*)
+open SymbolTable
 
 
 
-type e = Exp
-type tok = INT | PLUS |  LPAR | RPAR | NOISE
+
+type e = Exp 
+type tok = INT | PLUS | TIMES | NOISE
 
 let lexer =
     [|
-        "[0-9]+" != INT --> int
-        "\+" := PLUS
-        "\(" := LPAR
-        "\)" := RPAR
-        " *" := NOISE
+        "\+"        := PLUS
+        "\*"        := TIMES
+        " *"        := NOISE
+        "[0-9]+"    != INT --> int
     |]
     |> Lexer
+
 
 let parser =
     Productions [
         Exp => [
-            [!INT; !PLUS; &Exp] 
+            [%Exp; !PLUS; %Exp] 
             >> fun args -> ValueOf args.[0] + ValueOf args.[2]
-
-            [!LPAR; &Exp; !RPAR; !PLUS; &Exp]
-            >> fun args -> ValueOf args.[1] + ValueOf args.[4]
-
-            [!LPAR; &Exp; !RPAR]
-            >> fun args -> ValueOf args.[1]
             
             [!INT]
             >> fun args -> ValueOf args.[0]
         ]
+
     ]
-    |> SLR.Create
+    |> SLR
+
+
+
 
 [<EntryPoint>]
 let main _ =
-  
-    
-    
-    let test = FromFile("C:\Users\KAM\OneDrive\Skrivebord/test.txt")
-    Tokens lexer test                                   // return a sequence of tokens from the langue 'lexer' in input
+    let content = FromString("1 + 1 + 2")
+    Tokens lexer content                                // return a sequence of tokens from the langue 'lexer' in input
     |> Seq.filter (fun token -> TypeOf token <> NOISE)
     |> parser.Parse                                     // remove space tokens before parsing
     |> printfn "%A"

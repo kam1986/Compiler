@@ -4,27 +4,13 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="html5.fs" />
-    <Compile Include="NFA.fs" />
-    <Compile Include="Position.fs" />
-    <Compile Include="SymbolTable.fs" />
-    <Compile Include="Result.fs" />
-    <Compile Include="TypeAcrobatics.fs" />
-    <Compile Include="Decoding.fs" />
-    <Compile Include="Token.fs" />
-    <Compile Include="Productions.fs" />
-    <Compile Include="Iter.fs" />
-    <Compile Include="Map.fs" />
-    <Compile Include="Regex.fs" />
-    <Compile Include="DFA.fs" />
-    <Compile Include="Lexer.fs" />
-    <Compile Include="Parser.fs" />
     <Compile Include="SyntaxTree.fs" />
-    <Compile Include="TypeCheck.fs" />
-    <Compile Include="Interpreter.fs" />
+    <Compile Include="SymbolTable.fs" />
     <None Include="test.fs" />
     <Compile Include="Compiler.fs" />
     
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ParLex\ParLex.fsproj" />
+  </ItemGroup>
 </Project>

@@ -13,7 +13,6 @@ open Position
 /// it also lets the user switch between static scooping and dynamic scooping to see the effect, or handle specific
 /// nesting constrains in respect to how binding rules are.
 type 'S ISymBolTable =
-    abstract Empty : 'S ISymBolTable
     abstract LookUp : string -> Result<'S, string>
     abstract Bind : string -> 'S -> 'S ISymBolTable
     abstract Remove : string -> 'S ISymBolTable
@@ -26,9 +25,7 @@ type 'S ISymBolTable =
 
 type 'S SymbolList = 
     List of (string * 'S) list
-with interface ISymBolTable<'S> with
-
-        member L.Empty = List [] :> 'S ISymBolTable
+with interface ISymBolTable<'S> with        
        
         member L.LookUp item =
             let (List lst) =  L
@@ -70,9 +67,7 @@ type 'S SymbolMap =
     Table of Map<string,'S> with 
     interface 'S ISymBolTable with
     
-        member L.Empty = Table Map.empty :> 'S ISymBolTable
-
-        member L.LookUp item =
+       member L.LookUp item =
             let (Table tab) = L
             match Map.tryFind item tab with
             | None -> sprintf "The item : %s was not found" item |> Error
@@ -115,7 +110,7 @@ let Remove name (table: 'S ISymBolTable) = table.Remove name
 ///
 /// let tab3 = Union tab2.Empty tab1
 ///
-/// would be a ISymbolTable with the same bindings as tab1 but of the implementation type tab2
+/// would be an ISymbolTable with the same bindings as tab1 but of the implementation type tab2
 let Union (tab1 : 'S ISymBolTable) (tab2 : 'S ISymBolTable) = tab2.Union tab1
 
 
