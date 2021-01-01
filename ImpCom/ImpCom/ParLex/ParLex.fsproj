@@ -17,6 +17,8 @@
     <Compile Include="DFA.fs" />
     <Compile Include="Productions.fs" />
     <Compile Include="Lexer.fs" />
+    <Compile Include="SLR.fs" />
+    <Compile Include="LR%281%29.fs" />
     <Compile Include="Parser.fs" />
   </ItemGroup>
 

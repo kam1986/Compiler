@@ -34,7 +34,6 @@ let parser =
             [!INT]
             >> fun args -> ValueOf args.[0]
         ]
-
     ]
     |> SLR
 
