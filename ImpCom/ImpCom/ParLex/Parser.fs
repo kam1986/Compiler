@@ -26,7 +26,8 @@ type Parser =
 
     /// get parse table
     member P.Table = P.table
-        
+    member P.language = P.symbols
+    member P.states = P.table.Length / P.size   
     /// Get or Set specific entry in the parse table.
     /// This enable to help costumize the parser explicitly, but still give the value of generation the
     /// basic parse table.
@@ -60,7 +61,6 @@ type Parser =
                 let pops, production, action = P.actions.[p]
                 let args = List.take pops stack |> List.rev |> List.toArray
                 let value = action args
-                
                 stack <- Token(production, value, PosOf input) :: List.skip pops stack
                 states <- List.skip pops states
                 
@@ -70,16 +70,17 @@ type Parser =
 
                    
                 | _ -> // should never be matched
-                    printfn "states %A" states
+                    let pos = PosOf input
                     NoError <- false
-                    err <- "Parser Error at position " + string (PosOf input |> Line, PosOf input |> Offset)
+                    err <- "Parser Error at position " + string (pos.Line, pos.Offset)
                    
 
             | Accept ->
                 states <- []
 
             | _ -> 
-                err <- "Parser Error at position " + string (PosOf input |> Line, PosOf input |> Offset) 
+                let pos = PosOf input
+                err <- "Parser Error at position " + string (pos.Line, pos.Offset)
                 printfn "states %A" states
                 NoError <- false
             
@@ -100,4 +101,5 @@ type Parser =
 let SLR productions = 
     productions |> SLR |> Parser
 
+let Run (p : Parser) = p.Parse
 

@@ -23,8 +23,9 @@ let GetPos (iter: 'I Iter) = iter.GetPos
 [<Struct>]
 type FromString =
     val private buf : byte list
-    private new(xs) = {buf = xs}
-    new(str : string) = { buf = GetBtyes str } 
+    val mutable private pos : Position
+    private new(xs, pos) = {buf = xs; pos = pos}
+    new(str : string) = { buf = GetBtyes str ; pos= Start} 
 
     static member FromFile(path) =
         use file = System.IO.File.OpenText(path)
@@ -34,7 +35,13 @@ type FromString =
         member L.Next =
             match L.buf with
             | []      -> Error "End of Stream"
-            | x :: xs -> Ok(x, FromString(xs) :> byte Iter)
+            | x :: xs when char x = '\n' ->
+                Newline &L.pos
+                Ok(x, FromString(xs, L.pos) :> byte Iter)
+
+            | x :: xs -> 
+                Move &L.pos 1
+                Ok(x, FromString(xs, L.pos) :> byte Iter)
         
         member L.Prev = ()
 
@@ -42,7 +49,7 @@ type FromString =
 
         member L.IsEmpty = List.isEmpty L.buf
 
-        member I.GetPos = Start
+        member L.GetPos = Copy &L.pos // will copy the position 
 
 [<Struct>]
 type 'I SeqIter = 
@@ -137,11 +144,4 @@ type FromFile =
 
         member I.IsEmpty = Seq.isEmpty I.content
 
-        member I.GetPos = 
-            {
-                Absolut = I.absolut
-                Line = I.line
-                Offset = I.offset
-                Indentation = I.line / 4 // needed for identation based parsing (yet to be implementet)
-            }
-
+        member I.GetPos = Start

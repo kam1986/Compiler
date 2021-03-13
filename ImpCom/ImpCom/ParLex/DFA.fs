@@ -189,7 +189,8 @@ let DfaMap (table : byte[]) size min' (accept : ('token * (string -> token)) opt
                     lexeme <- lexeme + (string << char) c   // at letter to lexeme
                     next <- next'                           // updating position
                     match accept.[int state] with
-                    | Some func -> token <- Some(func, lexeme, next)
+                    | Some func -> 
+                        token <- Some(func, lexeme, next)
                     | _ -> ()
                 else 
                     msg <- "Transition error"

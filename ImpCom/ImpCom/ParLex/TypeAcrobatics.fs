@@ -1,5 +1,13 @@
 module TypeAcrobatics
 
+(*
+
+    OBS!!! this should at some point be transformed into an interface 'I value with
+
+    tryParse and parse methods where the token type implement it for all basic types
+
+*)
+
 /// Abstraction that hide the type from the type system.
 /// enabling collection of none uniform types
 type Type = Type of obj
@@ -25,7 +33,7 @@ let internal Arg item = Delay id item
 ///     printfn "%d" <| Take One // here the expected input of printfn is int do To '%d' it also do fine with %A
 let inline internal Take (Arg a) = 
     let (Type t) = a()
-    t :?> _ 
+    t :?> _ // runtime check i.e. performance penalty
 
 
 let t = [Arg (printfn "first"); Arg 1; Arg 2.3]

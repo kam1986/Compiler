@@ -131,3 +131,23 @@ let t' = Seq.tail test
 for letter in test do printf "%c" (char letter)
 
 let ret = Seq.skip 10 test |> Seq.head |> char
+
+
+type A = A of string
+open System.IO
+open System.Collections.Generic
+open System.Runtime.CompilerServices
+
+type ITest =
+    abstract member Print : unit -> unit
+
+type System.String with
+    interface ITest with
+        member S.Print() = printfn "%A" S
+
+let test = ("hej").Print()
+
+
+using 
+    (File.Create(@"C:\Users\KAM\OneDrive\Skrivebord\test.txt")) 
+    (fun s -> (s :> ITest).Print())

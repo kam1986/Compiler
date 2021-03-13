@@ -25,7 +25,7 @@ let ( => ) N rules = Production(N, rules)
 
 // transform each terminal and non terminal into a integer representation of the same productions to enable diviations
 let inline internal ToCommonRepresentation (Productions productions) =
-    productions
+    productions 
     |> List.map (fun (Production(N, rules)) -> 
         N.GetHashCode() => 
             List.map (fun (rule, action) ->

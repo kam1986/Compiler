@@ -1,5 +1,13 @@
 ﻿module Lexer
 
+(*
+
+    TODO: 
+       - change the conversion of the token to value to result type where we get som error formatter for the specifec case
+       - Change token type and postpond the conversion of value undtil later
+       - Change the iter to Some interface type that support read + seek + next
+*)
+
 #nowarn "64"
 
 open Return
@@ -17,7 +25,7 @@ let LexError msg =
 
 let ( != ) (str : string) (token : 't when 't : equality, ret) = (str, (token, fun input -> Delay ret input))
 let ( := ) (str : string) (token : 't when 't : equality) = (str, (token, fun _ -> Arg null)) // should not be used to anything
-let ( --> ) (token : 't when 't : equality) ret = (token, ret)
+let ( --> ) ret (token : 't when 't : equality) = (token, ret)
 
 
 [<Struct>]
