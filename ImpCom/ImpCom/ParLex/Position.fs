@@ -5,15 +5,14 @@
 type Position = 
         val mutable Line : int 
         val mutable Offset : int 
-        val mutable Indentation : int 
         val mutable Absolut : int
         internal new(line, offset, absolut) = {
             Line = line
             Offset = offset
-            Indentation = offset >>> 2
             Absolut = absolut
             }
 
+        override P.ToString() = "(" + string P.Line + ", " + string P.Offset + ")"
         
 
 let Start = Position()
@@ -31,12 +30,12 @@ let Newline (pos : byref<Position>) =
     pos.Absolut <- pos.Absolut + 1
     pos.Line <- pos.Line + 1
     pos.Offset <- 0
-    pos.Indentation <- 0
  
     
-let Line (pos : Position byref) = pos.Line
-let Offset (pos : Position byref) = pos.Offset
-let Indentation (pos : Position byref) = pos.Indentation
-let Absolut (pos : Position byref) = pos.Absolut
+let Line (pos : Position) = pos.Line
+let Offset (pos : Position) = pos.Offset
+let Indentation (pos : Position) = pos.Offset >>> 2 // low overhead computation, most likely only computed once pr. position
+let Absolut (pos : Position) = pos.Absolut
+
 // make a copy and set indentation correctly
-let Copy (pos: Position byref) = Position(Line &pos, Offset &pos, Absolut &pos)
+let Copy (pos: Position byref) = Position(Line pos, Offset pos, Absolut pos)

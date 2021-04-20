@@ -5,9 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Position.fs" />
+    <Compile Include="Interfaces.fs" />
     <Compile Include="Decoding.fs" />
     <Compile Include="Result.fs" />
-    <Compile Include="Position.fs" />
     <Compile Include="TypeAcrobatics.fs" />
     <Compile Include="Token.fs" />
     <Compile Include="Iter.fs" />
@@ -20,6 +21,10 @@
     <Compile Include="SLR.fs" />
     <Compile Include="LR%281%29.fs" />
     <Compile Include="Parser.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="5.0.2-beta.21102.10" />
   </ItemGroup>
 
 </Project>

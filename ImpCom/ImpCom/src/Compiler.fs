@@ -15,7 +15,7 @@ open SymbolTable
 
 [<EntryPoint>]
 let main _ =
-    let content = FromString " 1 + 2 - 2 * 3"
+    let content = FromString " (0 + 3) mod 2"
     Tokens lexer content                               // return a sequence of tokens from the language of the 'lexer' as put
     |> Seq.filter (fun token -> TypeOf token <> NOISE) // user defined filter of tokens
     |> Run parser                                      // parse token sequence

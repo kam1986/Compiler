@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "CbNFpkx9OQ5kVCP+1G0BRATH9qGMMBqTyXQvZDjKl6izDjAccIewTGub6jXL3lg0DbmE2xxd5Xo+mMWxfw/9wQ==",
+  "dgSpecHash": "bvr74pk8z7qLqGCq/G7fVUyFwWzKz4ZZyTfgm3L+0ZJp6LQZtG2PbvkPlOZX58n192hC37QUm9XBQjTNcHRU3A==",
   "success": true,
   "projectFilePath": "C:\\Users\\KAM\\OneDrive\\Skrivebord\\Compiler\\ImpCom\\ImpCom\\ParLex\\ParLex.fsproj",
   "expectedPackageFiles": [
-    "C:\\Users\\KAM\\.nuget\\packages\\fsharp.core\\5.0.0\\fsharp.core.5.0.0.nupkg.sha512"
+    "C:\\Users\\KAM\\.nuget\\packages\\fsharp.core\\5.0.2-beta.21102.10\\fsharp.core.5.0.2-beta.21102.10.nupkg.sha512"
   ],
   "logs": []
 }

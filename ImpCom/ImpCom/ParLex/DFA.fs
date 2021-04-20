@@ -168,12 +168,17 @@ let getAcceptancePrState (states : int Set seq) (acceptance : ('token * ('a -> '
 
 
 
-// NEED TESTING and to find accept array
+// To minimize memory consumption, we use byte arrays since this give a minimal overbound on the table
+// we still can define the same patterns encluding text encodings like utf7, utf8, utf16 and many more.
+// it will encounter a slight hit in performance pr. letter since it in worst case can be 4 match rather than one
+// in those cases, but this will be negated by the ability to make small jumps, rather than big once, making cache misses mutch less likely
+// where cache missed offent are a bigger hit on performance.
 let DfaMap (table : byte[]) size min' (accept : ('token * (string -> token)) option[])=
     
     fun (input : byte Iter) ->
-        let mutable state = 0uy // initial state
-        let mutable index = 0
+        let mutable state = 0uy     // initial state
+        let mutable index = 0       // not stickly needed, but should enforce no relocation on the register used for indexing.
+        let mutable pos = Start
         let mutable noError = true
         let mutable token = None
         let mutable lexeme = ""
@@ -191,6 +196,7 @@ let DfaMap (table : byte[]) size min' (accept : ('token * (string -> token)) opt
                     match accept.[int state] with
                     | Some func -> 
                         token <- Some(func, lexeme, next)
+                        pos <- next.GetPos
                     | _ -> ()
                 else 
                     msg <- "Transition error"
@@ -203,6 +209,8 @@ let DfaMap (table : byte[]) size min' (accept : ('token * (string -> token)) opt
         match token with
         // return token type as an integer
         // should check that the token type is correct
-        | Some ((tokentype, func), l, next) -> Ok(Token(tokentype, func l, GetPos next), next)
+        | Some ((tokentype, func), l, next) -> 
+            next.GetPos <- pos // rollback the position to last valid lexeme
+            Ok(Token(tokentype, func l, GetPos next), next)
         | None -> Error <| msg
     |> Map

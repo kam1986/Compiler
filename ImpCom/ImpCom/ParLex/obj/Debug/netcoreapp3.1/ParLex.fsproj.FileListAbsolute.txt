@@ -6,3 +6,4 @@ C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\ParLex\obj\Debug\netcore
 C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\ParLex\obj\Debug\netcoreapp3.1\ParLex.AssemblyInfo.fs
 C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\ParLex\obj\Debug\netcoreapp3.1\ParLex.dll
 C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\ParLex\obj\Debug\netcoreapp3.1\ParLex.pdb
+C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\ParLex\bin\Debug\netcoreapp3.1\FSharp.Core.xml

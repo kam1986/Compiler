@@ -27,3 +27,4 @@ C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\src\obj\Debug\netcoreapp
 C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\src\obj\Debug\netcoreapp3.1\Compiler.genruntimeconfig.cache
 C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\src\bin\Debug\netcoreapp3.1\ParLex.dll
 C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\src\bin\Debug\netcoreapp3.1\ParLex.pdb
+C:\Users\KAM\OneDrive\Skrivebord\Compiler\ImpCom\ImpCom\src\bin\Debug\netcoreapp3.1\FSharp.Core.xml

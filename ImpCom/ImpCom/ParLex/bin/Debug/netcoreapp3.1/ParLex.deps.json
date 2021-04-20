@@ -8,17 +8,17 @@
     ".NETCoreApp,Version=v3.1": {
       "ParLex/1.0.0": {
         "dependencies": {
-          "FSharp.Core": "5.0.0"
+          "FSharp.Core": "5.0.2-beta.21102.10"
         },
         "runtime": {
           "ParLex.dll": {}
         }
       },
-      "FSharp.Core/5.0.0": {
+      "FSharp.Core/5.0.2-beta.21102.10": {
         "runtime": {
           "lib/netstandard2.0/FSharp.Core.dll": {
             "assemblyVersion": "5.0.0.0",
-            "fileVersion": "5.0.20.50704"
+            "fileVersion": "5.0.221.10210"
           }
         },
         "resources": {
@@ -71,12 +71,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "FSharp.Core/5.0.0": {
+    "FSharp.Core/5.0.2-beta.21102.10": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-iHoYXA0VaSQUONGENB1aVafjDDZDZpwu39MtaRCTrmwFW/cTcK0b2yKNVYneFHJMc3ChtsSoM9lNtJ1dYXkHfA==",
-      "path": "fsharp.core/5.0.0",
-      "hashPath": "fsharp.core.5.0.0.nupkg.sha512"
+      "sha512": "sha512-T4zo+GYiFfGcsfugo2sF7l1ZT3UdYbYUm6yNVIDZTfXzftSk2BsSmvwCWZ5RsJzXiCVN8tFsmL2x+PL4q1QmjQ==",
+      "path": "fsharp.core/5.0.2-beta.21102.10",
+      "hashPath": "fsharp.core.5.0.2-beta.21102.10.nupkg.sha512"
     }
   }
 }

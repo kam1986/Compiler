@@ -8,7 +8,7 @@
        - Change the iter to Some interface type that support read + seek + next
 *)
 
-#nowarn "64"
+#nowarn "25" "64"
 
 open Return
 open Mapping
@@ -65,6 +65,26 @@ type Lexer<'token when 'token : equality> =
     
 
 let internal LexNext pattern = Lexer<'a>.LexNext pattern
+
+
+let FindAll pattern input =
+    let rec sequence input =
+           match LexNext pattern input with
+           | Ok (token, iter) -> 
+               seq { 
+                   yield token
+                   yield! sequence iter
+               }
+           | Error _ -> 
+               match IsEmpty input with
+               | true -> Seq.empty
+               | _ ->
+                   // if no match skip one byte and try again until end of sequence
+                   // loop invariance is that we know that the sequence contains atleast one more byte
+                   // nowarn "25" course the compiler to ignore incomplete pattern matching here it is needed because we know it is true but the compiler can not figure it out
+                   let (Ok(_, iter)) = Next input
+                   sequence iter
+    sequence input
 
 
 let Tokens pattern input =

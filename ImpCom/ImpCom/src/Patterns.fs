@@ -4,11 +4,12 @@ open Token
 open Lexer
 open Productions
 open Parser
+open Position
 
 // This is the lexing pattern for the compiler
 type tok = 
-    | INT  | FLOAT // | ID    | STR 
-    | PLUS | MINUS | TIMES | DIVIDE 
+    | INT  //| FLOAT // | ID    | STR 
+    | PLUS | MINUS | TIMES | DIVIDE | MOD
     | LPAR | RPAR  | NOISE  // | LSQR | RSQR | LBRA | RBRA
 
 let lexer =
@@ -19,6 +20,7 @@ let lexer =
         "\*"                                := TIMES
         "\("                                := LPAR
         "\)"                                := RPAR
+        "mod"                               := MOD
        (* 
         "\["                                := LSQR
         "\]"                                := RSQR
@@ -27,7 +29,7 @@ let lexer =
         *)
         
         "[0-9]+"                            != int      --> INT
-        "([0-9]+.[0-9]*)|([0-9]*.[0-9]+)"   != float    --> FLOAT
+        //"([0-9]+.[0-9]*)|([0-9]*.[0-9]+)"   != float    --> FLOAT
         // "[A-Z][A-Za-z0-9_]*"                != string   --> ID
         //"\"([^\"]|(\\\"))*\""               != string   --> STR // test it
 
@@ -40,29 +42,44 @@ let lexer =
     |> Lexer
 
 
-type Language = Exp | Func | Val
+type Expression = 
+    | F64 of float | I32 of int
+    | Add of Expression * Expression * Position
+    | Sub of Expression * Expression * Position
+    | Mul of Expression * Expression * Position
+    | Div of Expression * Expression * Position
+
 // this is the parsing pattern for the compiler
-type e = Exp | Exp' | Val
+type e = Exp | Exp' | Exp'' | Val
 
 // OBS! if for some reason you havn't implemented all Tokens into the productions, it will course an error
 let parser =
     Productions [
         Exp => [
-            [%Exp; !PLUS; %Exp'] 
-            >> fun args -> ValueOf args.[0] + ValueOf args.[2]
-
-            [%Exp; !MINUS; %Exp'] 
-            >> fun args -> ValueOf args.[0] - ValueOf args.[2]
+            
+            [%Exp; !MOD; %Exp'] 
+            >> fun args -> ValueOf args.[0] % ValueOf args.[2]
 
             [%Exp']
             >> fun args -> ValueOf args.[0]
         ]
-
+        
         Exp' => [
-            [%Exp'; !TIMES; %Val] 
+            [%Exp'; !PLUS; %Exp''] 
+            >> fun args -> ValueOf args.[0] + ValueOf args.[2]
+
+            [%Exp'; !MINUS; %Exp''] 
+            >> fun args -> ValueOf args.[0] - ValueOf args.[2]
+
+            [%Exp'']
+            >> fun args -> ValueOf args.[0]
+        ]
+
+        Exp'' => [
+            [%Exp''; !TIMES; %Val] 
             >> fun args -> ValueOf args.[0] * ValueOf args.[2]
 
-            [%Exp'; !DIVIDE; %Val] 
+            [%Exp''; !DIVIDE; %Val] 
             >> fun args -> ValueOf args.[0] / ValueOf args.[2]
             
             [%Val]
@@ -76,8 +93,7 @@ let parser =
             [!INT]
             >> fun args -> ValueOf args.[0]
 
-            [!FLOAT]
-            >> fun args -> ValueOf args.[0]
+  
             
         ]
     ]

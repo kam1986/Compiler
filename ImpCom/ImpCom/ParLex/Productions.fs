@@ -3,9 +3,14 @@
 open NFA
 open Token
 open TypeAcrobatics
-open Position
+
 
 type Symbol<'T,'N> = Terminal of 'T | NonTerminal of 'N 
+
+let isTerminal t = 
+    match t with
+    | Terminal _ -> true
+    | _         -> false
 
 let (!) item = Terminal item
 let (~%) item = NonTerminal item

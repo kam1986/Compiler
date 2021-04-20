@@ -9,7 +9,7 @@ module TypeAcrobatics
 *)
 
 /// Abstraction that hide the type from the type system.
-/// enabling collection of none uniform types
+/// enabling collection of none uniform types into the same collection without interfaces
 type Type = Type of obj
 
 let inline internal AnyType t = Type (t :> obj)
@@ -35,5 +35,3 @@ let inline internal Take (Arg a) =
     let (Type t) = a()
     t :?> _ // runtime check i.e. performance penalty
 
-
-let t = [Arg (printfn "first"); Arg 1; Arg 2.3]

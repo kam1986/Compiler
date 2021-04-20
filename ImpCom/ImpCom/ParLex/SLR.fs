@@ -96,6 +96,15 @@ let internal makeTable follow actions language goto dfa =
             ) (Map.empty, 0)
         |> fst
 
+    printfn "Parser Information"
+    printfn "The parser has %d states" dfa.Length
+    printfn "For a language of %d tokens" terminals.Count
+    printfn "and %d productions" (language.Count - terminals.Count)
+    printfn ""
+    printfn "There is %d transitions" (goto : Map<_,_>).Count
+    printfn "i.e. %f procent of the entries are non errors" (float goto.Count/ float (language.Count * dfa.Length)) 
+    printfn ""
+
     // making accepting state set
     let acceptingstates = 
         List.map (fun (x, _, _, _) -> x) actions 
@@ -116,6 +125,19 @@ let internal makeTable follow actions language goto dfa =
             match accept.Count with
             | 0 ->
                 table.[offset + symbols + N] <- Goto dst
+            | 1 ->
+                // take the one with highest precedence
+                let p = findaction accept.MinimumElement actions
+                // set goto table entry
+                table.[offset + symbols + N] <- Goto dst
+                // set reduction
+                for c in flw do
+                    let entry = table.[offset + c + 1]
+                    match entry with
+                    | Shift n ->
+                        printfn "shift / reduce conclict"
+                    | _ -> ()
+                    table.[offset + c + 1] <- Reduce p
             | _ ->
                 // take the one with highest precedence
                 let p = findaction accept.MinimumElement actions
@@ -123,9 +145,20 @@ let internal makeTable follow actions language goto dfa =
                 table.[offset + symbols + N] <- Goto dst
                 // set reduction
                 for c in flw do
+                    let entry = table.[offset + c + 1]
+                    match entry with
+                    | Shift n ->
+                        printfn "shift / reduce conclict"
+                    | _ -> ()
                     table.[offset + c + 1] <- Reduce p
         | Terminal c ->
             let offset = size * src + 1 + c // shifting the table entries by one to the right, this allow the terminal to be represented by -1 
+            let entry = table.[offset]
+            match entry with
+            | Reduce n ->
+                printfn "shift / reduce conclict"
+            | _ -> ()
+            
             table.[offset] <- Shift dst
 
     dfa

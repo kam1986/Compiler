@@ -11,7 +11,7 @@ type 'I Iter =
     abstract member Prev : unit
     abstract member Show : unit
     abstract member IsEmpty : bool
-    abstract member GetPos : Position
+    abstract member GetPos : Position byref
 
 let Next (iter : 'I Iter) = iter.Next
 let Prev (iter : 'I Iter) = iter.Prev
@@ -24,8 +24,9 @@ let GetPos (iter: 'I Iter) = iter.GetPos
 type FromString =
     val private buf : byte list
     val mutable private pos : Position
-    private new(xs, pos) = {buf = xs; pos = pos}
-    new(str : string) = { buf = GetBtyes str ; pos= Start} 
+    val mutable private spos : Position
+    private new(xs, pos, spos) = {buf = xs; pos = pos; spos = spos}
+    new(str : string) = { buf = GetBtyes str ; pos= Start ; spos= Start} 
 
     static member FromFile(path) =
         use file = System.IO.File.OpenText(path)
@@ -37,11 +38,11 @@ type FromString =
             | []      -> Error "End of Stream"
             | x :: xs when char x = '\n' ->
                 Newline &L.pos
-                Ok(x, FromString(xs, L.pos) :> byte Iter)
+                Ok(x, FromString(xs, L.pos, L.spos) :> byte Iter)
 
             | x :: xs -> 
                 Move &L.pos 1
-                Ok(x, FromString(xs, L.pos) :> byte Iter)
+                Ok(x, FromString(xs, L.pos, L.spos) :> byte Iter)
         
         member L.Prev = ()
 
@@ -49,7 +50,13 @@ type FromString =
 
         member L.IsEmpty = List.isEmpty L.buf
 
-        member L.GetPos = Copy &L.pos // will copy the position 
+        member L.GetPos = 
+            let p = L.spos
+            L.spos <- (Copy &L.pos) // will copy the position 
+            match L.buf with
+            | x :: _ when x = byte '\n'  -> Newline &L.spos
+            | _                     -> Position.Next &L.spos
+            p
 
 [<Struct>]
 type 'I SeqIter = 
